@@ -1,220 +1,193 @@
-# Sentiment Analysis on Social Media using Language Models
+# Advanced Multi-Model Social Media Sentiment Analyzer
 
-Sentiment analysis involves analyzing digital text to determine whether the emotional tone is positive, negative, or neutral. This analysis provides valuable insights for companies to enhance customer service and increase brand reputation.
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Transformers-orange)](https://huggingface.co/)
+[![MLflow](https://img.shields.io/badge/MLflow-Tracking-purple)](https://mlflow.org/)
+[![Poetry](https://img.shields.io/badge/Poetry-Dependency%20Management-green)](https://python-poetry.org/)
 
-The project aims to explore, train, and compare multiple machine learning models for sentiment analysis using textual data sourced from social media. Specifically, it investigates the effectiveness of different pretrained language models, comparing encoder-only and decoder-only models (known as LLM) variants, and evaluates their performance, data requirements and efficiency based on parameter count.
+## Overview
 
-Beyond model training, the project includes comprehensive exploratory data analysis, which provides actionable intelligence for marketing strategies using insights such as popular hashtags or emerging trends. A general analysis and detailed hashtag analysis is performed, integrating various supervised and unsupervised techniques, including graph analysis and semantic clustering.
+The **Advanced Multi-Model Social Media Sentiment Analyzer** is a comprehensive Python-based toolkit for performing sentiment analysis on social media content, with a focus on tweets. This project leverages the [TweetEval dataset](https://huggingface.co/datasets/tweet_eval) from Hugging Face to classify tweets as **positive**, **negative**, or **neutral**. It goes beyond basic classification by comparing multiple model architectures—including traditional machine learning (ML) models, encoder-only transformers (e.g., BERT variants), and decoder-only large language models (LLMs) like Mistral and Gemma—to evaluate their performance, data efficiency, and computational requirements.
 
-## Data
+Key goals include:
+- **Model Comparison**: Assess accuracy, training time, and parameter efficiency across model types.
+- **Exploratory Data Analysis (EDA)**: Uncover insights like trending hashtags, semantic clusters, and network graphs of tweet interactions.
+- **Scalability and Optimization**: Use techniques like LoRA fine-tuning for LLMs, few-shot learning, and hyperparameter optimization with Optuna.
 
-This project uses [TweetEval](https://huggingface.co/datasets/cardiffnlp/tweet_eval) dataset, which is a collection of English datasets for seven multi-class classification tasks, all utilizing Twitter data. The tasks include irony detection, hate speech detection, offensive content identification, stance detection, emoji prediction, emotion recognition and sentiment analysis. 
+This project is ideal for researchers, data scientists, or developers interested in NLP for social media monitoring, trend detection, or opinion mining.
 
-Specifically, we focus on the sentiment analysis task, which aims to classify the sentiment of a tweet as negative, neutral or positive.
+## Features
 
-To download the data and load it into the project, the following code can be used:
+- **Multi-Modal Support**: Handles traditional ML (Logistic Regression, Random Forest, VADER), encoder-only transformers, and decoder-only LLMs.
+- **Preprocessing Pipelines**: Custom tokenization, cleaning, and prompt engineering tailored to each model type.
+- **Fine-Tuning & Evaluation**: LoRA for efficient LLM tuning, few-shot prompting, and metrics like accuracy, F1-score, and confusion matrices.
+- **Experiment Tracking**: Integrated with MLflow for logging runs, parameters, and artifacts; Optuna for automated hyperparameter tuning.
+- **Advanced Insights**: 
+  - Hashtag semantic clustering using embeddings.
+  - Graph-based analysis of tweet networks.
+  - Similarity computations for trend detection.
+- **Visualization**: Jupyter notebooks for EDA, plus MLflow/Optuna dashboards for interactive model comparison.
+- **Modular Design**: Easy to extend with new models or datasets.
 
-```python
-from datasets import load_dataset
+## Technologies & Dependencies
 
-dataset = load_dataset("tweet_eval", "sentiment")
+- **Core**: Python 3.8+, PyTorch, Hugging Face Transformers & Datasets.
+- **ML/Optimization**: Scikit-learn, Optuna, VADERSentiment.
+- **Tracking & Viz**: MLflow, Matplotlib, NetworkX, Seaborn.
+- **Package Management**: Poetry (see `pyproject.toml` for full list).
+- **Other**: Flash-Attention for efficient training, SQLite for local DB.
+
+## Installation
+
+1. **Clone the Repository**:
+   ```
+   git clone https://github.com/rohitmannur007/Advanced-Multi-Model-Social-Media-Sentiment-Analyzer.git
+   cd Advanced-Multi-Model-Social-Media-Sentiment-Analyzer
+   ```
+
+2. **Set Up Virtual Environment with Poetry**:
+   ```
+   poetry install
+   poetry shell  # Activate the environment
+   ```
+
+3. **Install Additional Requirements** (if needed for GPUs or extras):
+   - For CUDA support: Ensure PyTorch is installed with CUDA via Poetry.
+   - Run `poetry add torch torchvision torchaudio --extras "cuda"` if using GPUs.
+
+4. **Initialize MLflow** (optional, for tracking):
+   ```
+   mlflow ui  # Starts the UI at http://localhost:5000
+   ```
+
+5. **Download Dataset**:
+   The TweetEval dataset is auto-loaded via Hugging Face in scripts, but you can preload it:
+   ```
+   python -c "from datasets import load_dataset; load_dataset('tweet_eval', 'sentiment')"
+   ```
+
+**Note**: Ensure you have sufficient RAM/GPU for LLMs (e.g., 16GB+ for Mistral). Use `device='cpu'` in scripts for testing.
+
+## Quick Start / Usage
+
+### 1. Run Exploratory Data Analysis
+Launch the EDA notebook to visualize the dataset:
+```
+poetry run jupyter notebook notebooks/eda.ipynb
+```
+- This covers data loading, distribution plots, and initial preprocessing.
+
+### 2. Train and Evaluate Models
+- **Machine Learning Models** (e.g., Logistic Regression):
+  ```
+  poetry run python src/social_media_nlp/experiments/ml/tune.py --model logistic_regression
+  ```
+- **Encoder-Only Transformers** (e.g., BERT):
+  ```
+  poetry run python src/social_media_nlp/experiments/seq_lm/train.py --model bert-base-uncased
+  poetry run python src/social_media_nlp/experiments/seq_lm/evaluation.py --model bert-base-uncased
+  ```
+- **Decoder-Only LLMs** (e.g., Mistral with LoRA):
+  ```
+  poetry run python src/social_media_nlp/experiments/llm/train.py --model mistral-7b --epochs 3
+  poetry run python src/social_media_nlp/experiments/llm/merge_models.py --model mistral-7b
+  poetry run python src/social_media_nlp/experiments/llm/evaluate_few_shot.py --model mistral-7b --shots 5
+  ```
+
+### 3. Generate Insights
+- Hashtag Clustering:
+  ```
+  poetry run python src/social_media_nlp/visualization/hashtag_clustering.py
+  ```
+- View Results in MLflow:
+  Open `http://localhost:5000` to compare experiments.
+
+### 4. Inference on New Data
+Load a trained model for predictions:
+```
+poetry run python src/social_media_nlp/models/transformers/inference.py --model bert-base-uncased --input_text "I love this product! #Happy"
 ```
 
-Additionally, the dataset can be manually downloaded from the HuggingFace datasets hub.
+For full usage details, refer to docstrings in each script or run `poetry run python <script> --help`.
 
-### Preprocessing
+## Project Structure
 
-We apply different preprocessing steps to the data to prepare it for training and evaluation depending on the type of model.
+This repository is organized modularly for clarity and extensibility. Below is a detailed breakdown of every folder and file, including their purpose, key contents, and how they fit into the workflow. Paths are relative to the root.
 
-For machine learning models, we apply the following preprocessing steps:
+### Top-Level Files
+- **`mlflow.db`**: SQLite database used by Optuna for storing hyperparameter tuning trials and results. Auto-generated during tuning experiments (e.g., via `hyperparameter_tuning.py`). Do not edit manually—it's for backend storage.
+- **`poetry.lock`**: Lockfile generated by Poetry, pinning exact versions of all dependencies (e.g., `transformers==4.35.0`). Ensures reproducible builds across environments.
+- **`pyproject.toml`**: Poetry configuration file defining project metadata (name, version, authors), dependencies (e.g., `torch`, `datasets`), and scripts. Use this to add/remove packages with `poetry add <pkg>`.
+- **`README.md`**: The main documentation file (this one!). Covers setup, usage, and structure.
 
-1. Cleaning and normalization (removing non-alphabetic characters, unicode normalization, lowercasing, etc.).
-2. Tokenization (word tokenization).
-3. Stopwords removal.
-4. Stemming (Porter stemming).
-5. Vectorization (TF-IDF, word embeddings).
+### Top-Level Folders
+- **`mlruns/`**: Directory for MLflow experiment artifacts. Contains subfolders for each run (e.g., `mlruns/0/<run-id>/`), storing metrics, parameters, models, and logs. Generated automatically during training/evaluation. Use `mlflow ui` to browse.
+- **`models/`**: Stores saved model checkpoints, predictions, and outputs from experiments. 
+  - Subfolders like `<model-name>/` hold `.bin`/`.pt` files (PyTorch weights), `predictions.json` (evaluation results), and config files. Populated by training scripts (e.g., `train.py`).
+- **`notebooks/`**: Jupyter notebooks for interactive analysis.
+  - **`eda.ipynb`**: Core EDA notebook. Loads the TweetEval dataset, performs statistical summaries (e.g., label distribution, text length histograms), visualizes trends (e.g., word clouds), and preprocesses samples. Run this first to understand the data.
 
-For encoder-only language models, we apply the following preprocessing steps:
+### `src/social_media_nlp/` (Core Source Code)
+The heart of the project—modular Python package for data, models, and experiments. Import as `from social_media_nlp import ...`.
 
-1. Tokenization.
-2. Padding.
-3. Truncation.
-4. Token to ID conversion.
-5. Special tokens addition.
-6. Attention mask creation.
+#### `src/social_media_nlp/data/`
+Handles dataset ingestion and cleaning.
+- **`cleaning.py`**: Text normalization script. Functions like `clean_tweet(text)` remove URLs, mentions, emojis, and stopwords; applies lemmatization and lowercase conversion. Used in preprocessing pipelines for ML and transformer models.
+- **`preprocessing.py`**: Model-agnostic pipeline. Includes tokenizers (e.g., BERTTokenizer), padding, and dataset splitting. Supports custom prompts for LLMs. Returns PyTorch DataLoaders.
 
-For decoder-only language models (LLM), we apply the following preprocessing steps:
+#### `src/social_media_nlp/experiments/`
+Experiment runners, grouped by model category. Each subfolder has dedicated train/eval scripts.
 
-1. Prompt creation.
-2. Stratified sampling to create subsets of the data.
-3. Mapping of the data to the prompt (including system prompts).
-4. Special tokens addition.
-5. Tokenization.
+- **`llm/`** (Decoder-Only LLMs, e.g., Mistral/Gemma):
+  - **`evaluate_few_shot.py`**: Runs few-shot inference (0-10 shots) on LLMs. Computes metrics like ROUGE for prompt-based classification. Ideal for low-data scenarios.
+  - **`evaluate.py`**: General evaluation loop for fine-tuned LLMs. Loads models, runs on test set, logs to MLflow (accuracy, precision/recall).
+  - **`merge_models.py`**: Merges LoRA adapters back into the base LLM weights post-fine-tuning. Outputs a standalone model file for deployment.
+  - **`train.py`**: Fine-tunes LLMs with LoRA/PEFT. Supports prompt engineering from `prompts.py`; tracks with MLflow.
 
+- **`ml/`** (Traditional Machine Learning):
+  - **`tune.py`**: Hyperparameter tuner using Optuna. Fits models like LogisticRegression or RandomForest on TF-IDF features; optimizes via cross-validation. Logs best params to MLflow.
 
-## Models
+- **`seq_lm/`** (Encoder-Only Transformers, e.g., BERT):
+  - **`evaluation.py`**: Post-training evaluator. Computes classification report, confusion matrix, and visualizations. Compares against baselines.
+  - **`train.py`**: Trainer for sequence models using Hugging Face's Trainer API. Handles tokenization, fine-tuning, and saving to `models/`.
 
-We experiment with multiple types of models to perform sentiment analysis on the TweetEval dataset. The models are divided into two main categories: machine learning models and transformer models.
+#### `src/social_media_nlp/models/`
+Model utilities, metrics, and implementations.
 
-### Machine Learning Models
+- **`evaluation.py`**: Shared metrics module. Defines functions for F1-score, accuracy, and custom LLM-specific metrics (e.g., perplexity). Used across all experiment evaluators.
+- **`hyperparameter_tuning.py`**: Optuna integration. Defines search spaces (e.g., learning rate, batch size) and objective functions for ML/transformer tuning. Stores trials in `mlflow.db`.
+- **`ml/`** (ML Model Wrappers):
+  - **`vader.py`**: Integrates VADER (Valence Aware Dictionary for sEntiment Reasoning). Rule-based scorer for tweets; handles slang/emojis. Used as a zero-shot baseline.
+- **`transformers/`** (Transformer Utilities):
+  - **`inference.py`**: Standalone inference script. Loads fine-tuned models for batch/single predictions; supports CPU/GPU.
+  - **`train.py`**: Low-level training logic for transformers (complements `experiments/seq_lm/train.py`). Includes early stopping and gradient accumulation.
+  - **`utils.py`**: Helpers like model loading, device mapping, and flash attention setup for efficiency.
+- **`utils.py`**: General utilities (e.g., seed setting, logging config, data loaders). Imported by most modules.
 
-The explored machine learning models are:
+#### Other Files in `src/social_media_nlp/`
+- **`prompts.py`**: Prompt templates for LLMs (e.g., "Classify this tweet as positive/negative/neutral: {text}"). Supports zero/few-shot formatting.
+- **`visualization/`** (Insight Generation):
+  - **`features.py`**: Extracts NLP features (e.g., TF-IDF vectors, embeddings via SentenceTransformers) for downstream analysis.
+  - **`graph.py`**: Builds and visualizes tweet interaction graphs using NetworkX (e.g., retweet networks, centrality measures for influencers).
+  - **`hashtag_clustering.py`**: Clusters hashtags semantically using K-Means on embeddings. Outputs dendrograms and top clusters for trend spotting.
+  - **`similarity.py`**: Computes cosine similarity between tweets/hashtags via embeddings. Useful for duplicate detection or topic modeling.
 
-- Logistic Regression
-- Random Forest
+## Contributing
 
-Additionally, we experiment with VADER.
+1. Fork the repo and create a feature branch (`git checkout -b feature/amazing-feature`).
+2. Commit changes (`git commit -m 'Add some amazing feature'`).
+3. Push to the branch (`git push origin feature/amazing-feature`).
+4. Open a Pull Request.
 
-### Transformer Models
+Please add tests for new features and ensure code passes `poetry run black .` for formatting.
 
-We experiment with two types of transformer models, encoder-only models and decoder-only models.
+## License
 
-#### Encoder-only Models
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details (add one if missing).
 
-The selected encoder-only models are:
+## Acknowledgments
 
-- [google-bert/bert-base-uncased](https://huggingface.co/google-bert/bert-base-uncased)
-- [distilbert/distilbert-base-uncased](https://huggingface.co/distilbert/distilbert-base-uncased)
-- [FacebookAI/roberta-base](https://huggingface.co/FacebookAI/roberta-base)
+- Built with [Hugging Face](https://huggingface.co/) datasets and models.
+- Thanks to the TweetEval contributors for the dataset.
 
-Additionally, we run the evaluation process for the following reference encoder-only models:
-
-- [cardiffnlp/twitter-roberta-base-sentiment-latest](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest)
-- [finiteautomata/bertweet-base-sentiment-analysis](https://huggingface.co/finiteautomata/bertweet-base-sentiment-analysis)
-
-#### Decoder-only Models (LLM)
-
-The selected decoder-only models are:
-
-- [microsoft/Phi-3-mini-4k-instruct](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
-- [mistralai/Mistral-7B-Instruct-v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)
-
-Additionally, we run the evaluation process using few-shot learning for the following reference decoder-only models:
-
-- [google/gemma-1.1-2b-it](https://huggingface.co/google/gemma-1.1-2b-it)
-- [meta-llama/Meta-Llama-3-8B-Instruct](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct)
-
-## Usage
-
-### Project setup
-
-1. Clone this repository to your local machine. To clone it from the command line run `git clone https://github.com/acampillos/social-media-nlp`.
-
-2. (Optional but recommended) Create a virtual environment. To create a virtual environment, run `python3.10.9 -m venv venv` in the root directory of the project. To activate the virtual environment, run `source venv/bin/activate` on Unix systems or `venv\Scripts\activate` on Windows.
-
-3. Install dependencies. Install by running `poetry install`. Poetry can be installed by running `pip install poetry`.
-
-4. Install [flash-attention](https://github.com/Dao-AILab/flash-attention). To install, run `pip install flash-attn --no-build-isolation`.
-
-<br>
-
-### Running the experiments
-
-The available experiments are located in the `experiments` directory and divided by type of model. These are also listed in the following table:
-
-<br>
-
-| Model Type                          | Task                      | Command                                                 |
-| ----------------------------------- | ------------------------- | ------------------------------------------------------- |
-| Language Model (decoder-only)       | Training                  | `python .src/social_media_nlp/experiments/llm/train.py model_id -r r -a a -e e -t -v v` |
-|                                     | Model and LoRA merging    | `python .src/social_media_nlp/experiments/llm/merge.py model_path subfolder` |
-|                                     | Evaluation                | `python .src/social_media_nlp/experiments/llm/evaluate.py model_path` |
-| Language Model (encoder-only)       | Training                  | `python .src/social_media_nlp/experiments/lm/train.py model_id` |
-|                                     | Evaluation                | `python .src/social_media_nlp/experiments/lm/evaluation.py model_path` |
-| Machine Learning                    | Training and evaluation   | `python .src/social_media_nlp/experiments/ml/tune.py` |
-
-<br>
-
-The parameters used are as follows:
-
-- `r`: Rank for fine-tuning using LoRA.
-- `a`: Alpha for fine-tuning using LoRA.
-- `e`: Number of epochs for training.
-- `t`: Number of entries to select for the training set.
-- `v`: Number of entries to select for the validation set.
-- `model_path`: Path to the selected model for the experiment.
-- `subfolder`: Path to a specific version of the model after fine-tuning.
-- `model_id`: Hugging Face identifier of the selected model or its local path
-
-<br>
-
-### Experiments visualization
-
-To visualize the hyperparameter tuning logs from Optuna, follow these steps:
-1. Start Optuna dashboard by running `optuna-dashboard sqlite:///mlflow.db` in the root directory of the project.
-2. Access dashboard on port 8080.
-3. View studies and their details (e.g., best parameters, best value, hyperparameter relationships, etc.).
-
-To visualize the logs from MLFlow used in the training and hyperparameter tuning of the models, follow these steps:
-1. Start MLFlow UI by running `mlflow ui` in the root directory of the project.
-2. Access dashboard on port 5000
-5. Explore dashboard (e.g., experiments, runs, metrics, etc.)
-
-<br>
-
-## Project structure
-
-    ├── mlruns                                  <- MLflow logs for experiments.
-    ├── models                                  <- Trained models predictions.
-    ├── notebooks                               <- Jupyter notebooks for EDA and experiments.
-    │   └── eda.ipynb
-    ├── src
-    │   └── social_media_nlp                    <- Source code for the project.
-    │       ├── data                            <- Data processing scripts.
-    │       │   ├── cleaning.py
-    │       │   └── preprocessing.py
-    │       ├── experiments                     <- Experiments scripts.
-    │       │   ├── llm                         <- Decoder-only transformer experiments.
-    │       │   │   ├── evaluate_few_shot.py
-    │       │   │   ├── evaluate.py
-    │       │   │   ├── merge_models.py
-    │       │   │   └── train.py
-    │       │   ├── ml                          <- Machine learning experiments.
-    │       │   │   └── tune.py
-    │       │   └── seq_lm                      <- Encoder-only transformer experiments.
-    │       │       ├── evaluation.py
-    │       │       └── train.py
-    │       ├── models                          <- Model training, evaluation and inference scripts.
-    │       │   ├── evaluation.py               <- Metrics evaluation.
-    │       │   ├── hyperparameter_tuning.py    <- Optuna hyperparameter tuning.
-    │       │   ├── ml                          <- Machine learning models' scripts.
-    │       │   │   └── vader.py
-    │       │   ├── transformers                <- Transformers models' scripts.
-    │       │   │   ├── inference.py
-    │       │   │   ├── train.py
-    │       │   │   └── utils.py
-    │       │   └── utils.py
-    │       ├── prompts.py                      <- Prompts for the LLMs.
-    │       └── visualization                   <- Scripts for exploratory analysis and results plots.
-    │           ├── features.py
-    │           ├── graph.py
-    │           ├── hashtag_clustering.py
-    │           └── similarity.py
-    ├── mlflow.db                               <- Optuna database for hyperparameter tuning.
-    ├── poetry.lock
-    ├── pyproject.toml                          <- Project dependencies.
-    └── README.md
-
-<br>
-
-## References
-
-* Rosenthal, S., Farra, N., & Nakov, P. (2017). SemEval-2017 task 4: Sentiment analysis in Twitter. In *Proceedings of the 11th international workshop on semantic evaluation (SemEval-2017)* (pp. 502-518).
-
-* Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2019). BERT: Pre-training of deep bidirectional transformers for language understanding. In J. Burstein, C. Doran, & T. Solorio (Eds.), *Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)* (pp. 4171-4186). Association for Computational Linguistics. https://aclanthology.org/N19-1423, doi: 10.18653/v1/N19-1423
-
-* Liu, Y., Ott, M., Goyal, N., Du, J., Joshi, M., Chen, D., Levy, O., Lewis, M., Zettlemoyer, L., & Stoyanov, V. (2019). RoBERTa: A robustly optimized BERT pretraining approach. arXiv. http://arxiv.org/abs/1907.11692
-
-* Sanh, V., Debut, L., Chaumond, J., & Wolf, T. (2019). DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter. arXiv, abs/1910.01108. https://api.semanticscholar.org/CorpusID:203626972
-
-* Camacho-Collados, J., Rezaee, K., Riahi, T., Ushio, A., Loureiro, D., Antypas, D., Boisson, J., Espinosa Anke, L., Liu, F., Martínez Cámara, E., et al. (2022). TweetNLP: Cutting-edge natural language processing for social media. In *Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing: System Demonstrations* (pp. 38-49). Association for Computational Linguistics. https://aclanthology.org/2022.emnlp-demos.5
-
-* Loureiro, D., Barbieri, F., Neves, L., Espinosa Anke, L., & Camacho-Collados, J. (2022). TimeLMs: Diachronic language models from Twitter. In *Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics: System Demonstrations* (pp. 251-260). Association for Computational Linguistics. https://aclanthology.org/2022.acl-demo.25, doi: 10.18653/v1/2022.acl-demo.25
-
-* Pérez, J. M., Giudici, J. C., & Luque, F. (2021). pysentimiento: A Python toolkit for sentiment analysis and SocialNLP tasks. arXiv. https://arxiv.org/abs/2106.09462
-
-* Abdin, M. I., Jacobs, S. A., Awan, A. A., Aneja, J., Awadallah, A., Awadalla, H., Bach, N., Bahree, A., Bakhtiari, A., Behl, H., et al. (2024). Phi-3 technical report: A highly capable language model locally on your phone. Microsoft. https://www.microsoft.com/en-us/research/publication/phi-3-technical-report-a-highly-capable-language-model-locally-on-your-phone/
-
-* Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S., de las Casas, D., Bressand, F., Lengyel, G., Lample, G., Saulnier, L., et al. (2023). Mistral 7B. arXiv. https://arxiv.org/abs/2310.06825
-
-* Gemma Team, Mesnard, T., Hardin, C., Dadashi, R., Bhupatiraju, S., Pathak, S., Sifre, L., Rivière, M., Kale, M. S., Love, J., et al. (2024). Gemma: Open models based on Gemini research and technology. arXiv. https://arxiv.org/abs/2403.08295
+For issues or questions, open a GitHub issue! 🚀
